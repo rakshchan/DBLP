@@ -47,9 +47,18 @@ public class EntityResolution {
 	
 	public Map<String, Author> ourMainMap;
 	
-	public EntityResolution()
+	private static EntityResolution uniqueInstance;
+	
+	private EntityResolution()
 	{
 		this.ourMainMap = new HashMap<String, Author>();
+	}
+	
+	public static EntityResolution getInstance()
+	{
+		if(uniqueInstance == null)
+			uniqueInstance = new EntityResolution();
+		return uniqueInstance;
 	}
 	
 	
@@ -209,7 +218,6 @@ class UserHandlerAuthorPublication extends DefaultHandler {
 	private boolean bJournal = false;
 	private boolean bUrl = false;
 	private Publication newPubl;
-	private int result = 0;
 	
 	//! Constructor
 	public UserHandlerAuthorPublication(Author author, List<Publication> publ){ 
@@ -294,7 +302,6 @@ class UserHandlerAuthorPublication extends DefaultHandler {
 			 if(this.AuthorFound){
 				 if(newPubl != null){
 					 this.publications.add(newPubl);}
-				 this.result += 1;
 				 this.AuthorFound = false;
 			 }
 			 bPubl = false;

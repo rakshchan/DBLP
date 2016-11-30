@@ -45,7 +45,7 @@ public class GUI extends JFrame
 	protected void makeComponents()
 	{
 	  queryLabel = new JLabel("Query: ");
-      queryChoice = new JComboBox(new String[] {"query" ,"Query 1", "Query 2" });    
+      queryChoice = new JComboBox(new String[] {"query" ,"Query 1", "Query 2", "Query 3"});    
       PubLabel = new JLabel("No.of Publication");
       searchLabel = new JLabel("Search By: ");
       searchBy = new JComboBox(new String[] { "search by","By Author","By Title Tags"});
@@ -198,6 +198,13 @@ class DBLP_GUI extends GUI
       
       integrateListeners();
       
+      makeInvisible(searchBy, sortByRelevance, sortByYear, sinceYear, customRangeFrom, 
+			   customRangeTo, search, reset, searchLabel, sinceYearLabel, rangeLabel, 
+			   nameTitleTags, nameTitleTagsLabel, queryLabel, noPubl, PubLabel);
+	   makeVisible(errorLabel, resultNumberLabel);
+	   errorLabel.setText("");
+	   resultNumberLabel.setText("");
+      
       GroupLayout layout = new GroupLayout(getContentPane());setLayout(layout);
       makeHorizontalGroup(layout);
       layout.linkSize(SwingConstants.HORIZONTAL, new java.awt.Component[] { queryChoice ,searchBy });
@@ -215,22 +222,29 @@ class DBLP_GUI extends GUI
 	   data[i][7] = p.getURL();
    }
  
-   public void displayNextData(List<Publication> pubList){
-	   resetTable();
-	   for(int i=this.currentIndex; i<this.currentIndex+20; i++){
-		   fillRow(pubList.get(i), i-this.currentIndex);
+   public void displayNextData(List<Publication> listPub){
+	   if(listPub == null)
+	   {
+		   System.out.print("The list is null");
 	   }
-	   this.currentIndex += 20;
+	   else
+	   {
+		   resetTable();
+		   for(int i=this.currentIndex; i<this.currentIndex+20 && i<listPub.size(); i++){
+			   fillRow(listPub.get(i), i-this.currentIndex);
+		   }
+		   this.currentIndex += 20;
+	   }
    }	
    
    public void displayNextData(Set<Author> authors){
-	   resetTable();
 	   int count = 0;
+	   resetTable();
 	   while(count < 20 && authorIterator.hasNext()){
-		   count += 1;
-		   currentIndex += 1;
+		   this.currentIndex += 1;
 		   data[count][0] = String.valueOf(currentIndex);
 		   data[count][1] = authorIterator.next().toString();
+		   count += 1;
 	   }
    }
    
@@ -243,6 +257,93 @@ class DBLP_GUI extends GUI
    {
 	   for(int i=0; i<components.length; i++)
 		   components[i].setVisible(true);
+   }
+   
+   private Map<Integer, Integer> tillYear(List<Publication> p, int toYear)
+   {
+	   Map<Integer, Integer> predMap = new HashMap<Integer, Integer>();
+	   for(Publication i : p)
+	   {
+		   if(i.getYear() <= toYear)
+		   {
+			   if(!predMap.containsKey(i.getYear()))
+				   predMap.put(i.getYear(), 0);
+			   int a = predMap.get(i.getYear());
+			   predMap.put(i.getYear(), a+1);
+		   }
+	   }
+	   return predMap;
+   }
+   
+   private List<Publication> checkRange(List<Publication> p){
+	   List<Publication> linkedP = new ArrayList<Publication>();
+	   if(customRangeFrom.getText().equals("YYYY") && customRangeTo.getText().equals("YYYY")){
+		   return p;
+	   }
+	   else if(customRangeFrom.getText().equals("YYYY")){
+		   try {
+			   int to = Integer.valueOf(customRangeTo.getText());
+			   for(Publication i : p){
+				   if(i.getYear() <= to)
+					   linkedP.add(i);
+			   }
+		   } catch (Exception e) {
+			   errorLabel.setText("Please provide a valid year!");
+			   return p;
+		   }
+	   }
+	   else if(customRangeTo.getText().equals("YYYY"))
+	   {
+		   try {
+			   int from = Integer.valueOf(customRangeTo.getText());
+			   for(Publication i : p){
+				   if(i.getYear() >= from)
+					   linkedP.add(i);
+			   }
+		   } catch (Exception e) {
+			   errorLabel.setText("Please provide a valid year!");
+			   return p;
+		   }
+	   }
+	   else{
+		   try {
+			   int to = Integer.valueOf(customRangeFrom.getText());
+			   int from = Integer.valueOf(customRangeFrom.getText());
+			   for(Publication i : p){
+				   if(i.getYear() >= from && i.getYear() <= to)
+					   linkedP.add(i);
+			   }
+		   } catch (Exception e) {
+			   errorLabel.setText("Please provide a valid year!");
+			   return p;
+		   }
+	   }
+	   return linkedP;
+   }
+   
+   private List<Publication> checkSinceYear(List<Publication> p)
+   {
+	   List<Publication> linkedP = new ArrayList<Publication>();
+	   if(!sinceYear.getText().equals("YYYY"))
+	   {
+		   try
+		   {
+			   int since = Integer.valueOf(sinceYear.getText());
+			   System.out.println(since);
+			   for(Publication i : p){
+				   if(i.getYear() >= since)
+					   linkedP.add(i);
+			   }
+		   }
+		   catch(Exception e){
+			   errorLabel.setText("Please provide a valid year");
+			   return p;
+		   }
+	   }
+	   else{
+		   return p;
+	   }
+	   return linkedP;
    }
    
    class SelectQuery implements ActionListener 
@@ -277,7 +378,13 @@ class DBLP_GUI extends GUI
 			   errorLabel.setText("");
 			   resultNumberLabel.setText("");
 			   break;
-			 
+		   case "Query 3" :
+			   makeInvisible(searchBy, sortByRelevance, sortByYear, customRangeFrom,
+					   customRangeTo, searchLabel, rangeLabel,  queryLabel, noPubl, PubLabel);
+			   makeVisible(sinceYearLabel, nameTitleTags, nameTitleTagsLabel, search, reset, errorLabel, resultNumberLabel, sinceYear);
+			   sinceYearLabel.setText("Up To Year");
+			   errorLabel.setText("");
+			   resultNumberLabel.setText("");
 		   }
 	   }
    }
@@ -294,13 +401,18 @@ class DBLP_GUI extends GUI
 				  errorLabel.setText("Please specify Name/Title query string.");
 			  else
 			  {
+				  System.out.println("Started working on query one.");
 				  currentIndex = 0;
 				  errorLabel.setText("");
 				  String queryString = nameTitleTags.getText();
 				  if(pubList != null)
 					  pubList.clear();
 				  pubList = control.getPublicationByAuthor(queryString);
+				  System.out.println("Query one processed");
 				  control.sortPublicationByDate(pubList);
+				  
+				  pubList = checkRange(pubList);
+				  pubList = checkSinceYear(pubList);
 				  displayNextData(pubList);
 				  if(pubList.size() > 0)
 					  resultNumberLabel.setText(String.valueOf(pubList.size()));
@@ -322,6 +434,8 @@ class DBLP_GUI extends GUI
 					  pubList.clear();
 				  for(Map.Entry<Integer,List<Publication> > entry : pubMap.entrySet())
 					  pubList.addAll(entry.getValue());
+				  pubList = checkRange(pubList);
+				  pubList = checkSinceYear(pubList);
 				  if(sortByRelevance.isSelected() && sortByYear.isSelected())
 					  errorLabel.setText("Please select only one of the two sorting parameters.");
 				  else if(sortByRelevance.isSelected()){
@@ -346,20 +460,15 @@ class DBLP_GUI extends GUI
 		   }
 	   }
 	   
-	   private void queryTwo()
-	   {
+	   private void queryTwo(){
 		  String num1 = noPubl.getText().toString();
 		  currentIndex = 0;
 		  try {
 			  if(num1 == null)
-			  {
 				  errorLabel.setText("Please specify the number of publications.");
-			  }
 			  int numP = Integer.valueOf(num1);
 			  if(numP < 0)
-			  {
 				  errorLabel.setText("Specify number of publications as a valid positive Integer.");
-			  }
 			  else
 			  {
 				  errorLabel.setText("");
@@ -373,10 +482,30 @@ class DBLP_GUI extends GUI
 					  resultNumberLabel.setText("No result!");
 			  }
 		  }
-		  catch(Exception exc)
-		  {
+		  catch(Exception exc){
 			  errorLabel.setText("Specify number of publications as a valid positive Integer.");
 		  }
+	   }
+	   
+	   private void queryThree(){
+		   String authorName = nameTitleTags.getText();
+		   int year = 0;
+		   try
+		   {
+			   year = Integer.valueOf(sinceYear.getText());
+			   if(pubList != null)
+					  pubList.clear();
+				 pubList = control.getPublicationByAuthor(authorName);
+				 Map<Integer, Integer> predictionMap = tillYear(pubList, year);
+				 errorLabel.setText("");
+				 Integer predictionPub = control.prediction(predictionMap, year+1);
+				 resultNumberLabel.setText(String.valueOf(predictionPub));
+		   }
+		   catch(Exception e)
+		   {
+			   errorLabel.setText("Please provide a valid year!");
+		   }
+		   
 	   }
 	   
 	   public void actionPerformed(ActionEvent e)
@@ -390,6 +519,9 @@ class DBLP_GUI extends GUI
 			  break;
 		  case "Query 2" :
 			  queryTwo();
+			  break;
+		  case "Query 3":
+			  queryThree();
 			  break;
 		  }
 	   }

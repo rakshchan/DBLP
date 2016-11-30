@@ -16,7 +16,7 @@ public class Main {
      */
 	public Main()
 	{
-		er = new EntityResolution();
+		er = EntityResolution.getInstance();
 		er.parseWWW();
 		er.parseAllAuthors();
 	}
@@ -100,6 +100,43 @@ public class Main {
 		Map<Integer, List<Publication> > publ = er.parsePublicationByTitle(listTitle);
 		return publ;
 	}
+	
+	public Integer prediction(Map<Integer, Integer> predMap, int year)
+	{
+		int n=predMap.size();
+		System.out.println(n);
+		double sumx, sumxsq, sumy, sumxy,a,b,denom;
+		sumx = 0;
+		sumxsq = 0;
+		sumy = 0;
+		sumxy = 0;
+
+		for(Map.Entry<Integer, Integer> entry : predMap.entrySet())
+		{ 
+			
+			int x = entry.getKey();
+		    sumx += x;
+		    sumxsq += (x)*(x);
+		    int y = entry.getValue();
+		    System.out.println(x + " : " + y);
+		    sumy += y;	
+		    sumxy += y*(x);
+		}
+		double avg = sumy/n;
+		System.out.println(sumx);
+		System.out.println(sumy);
+		System.out.println(sumxsq);
+		System.out.println(sumxy);
+		denom = n*sumxsq-(sumx*sumx);
+		a = ((sumy*sumxsq)-(sumx*sumxy))/denom;
+		b = (n*sumxy-sumx*sumy)/denom;
+		Double ans  = a+b*year;
+		ans = (ans+(1.5*avg))/2.5;
+		if(ans - ans.intValue() < 0.5)
+			return ans.intValue();
+		else
+			return ans.intValue()+1;
+	}
 	/*!  
      *  This is the MAIN method where the GUI is invoked.
      */
@@ -109,7 +146,6 @@ public class Main {
         {
            public void run()
            {
-        	  EntityResolution er =  new EntityResolution();
               DBLP_GUI frame = new DBLP_GUI();
               frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
               frame.setVisible(true);
