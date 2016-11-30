@@ -10,10 +10,14 @@ import java.io.File;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+//! Interface for SAXParsing Handler  Factory
 interface SAXHandlerFactoryInterface {
 	public void makeSAXParser();
 }
-
+//! Factory Interface
+/*! 
+ *   creates the parsing logic using the handler provided.
+*/
 class SAXHandlerFactory implements SAXHandlerFactoryInterface {
 	
 	DefaultHandler handler;
@@ -89,8 +93,10 @@ public class EntityResolution {
 	}
 	
 }
-
-//parse for multiple names of same author
+//! WWW Parsing
+/*! 
+ * Parsing for multiple names of the same author 
+ */
 class UserHandlerWWW extends DefaultHandler{
 	private Map<String, Author> nameMap;
 	boolean bAuthorName = false;
@@ -127,18 +133,25 @@ class UserHandlerWWW extends DefaultHandler{
 		 }
 	 }
 }
-
-//parse for Authors and their number of publications
+//! Handler class for Authors and Publications
+/*! 
+ * Parse for authors and their number of Publications 
+ */
 class UserHandlerAuthors extends DefaultHandler {
 	private Map<String, Author> nameMap;
 	boolean bAuthorName = false;
 	boolean bPubl = false;
 	Author newAuthor;
 	
+	//!Constructor
 	public UserHandlerAuthors(Map<String, Author> givenMap) {
 		this.nameMap = givenMap;
 	}
 	
+	//! callback for start element done by SAX Parser
+	/*! 
+	 * Check the type for start and element and mark the corresponding boolean variable. 
+	 */
 	public void startElement(String uri,String localname,String qname,Attributes attributes) throws SAXException{
 		if(qname.equalsIgnoreCase("article") || qname.equalsIgnoreCase("inproceedings") || qname.equalsIgnoreCase("proceedings") || qname.equalsIgnoreCase("book") || qname.equalsIgnoreCase("incollection") || qname.equalsIgnoreCase("masterthesis") || qname.equalsIgnoreCase("phdthesis")) {
 			bPubl = true;
@@ -148,7 +161,13 @@ class UserHandlerAuthors extends DefaultHandler {
 		}
 	}
 	 
-	 public void characters(char ch[],int start, int length)throws SAXException{
+	//! callback for characters done by SAX Parser
+	/*! 
+	 * ch stores the text within the opening and ending tags in xml file. 
+	 * Match the author of the publication with the query author and create
+	 * the author instance.
+	 */
+	public void characters(char ch[],int start, int length)throws SAXException{
 		 if(bAuthorName){
 			 String name = new String(ch, start, length);
 			 if(!this.nameMap.containsKey(name))
@@ -162,15 +181,21 @@ class UserHandlerAuthors extends DefaultHandler {
 			 this.bAuthorName = false;
 		 }
 	 }
-	 
+
+	//! callback for endelement done by SAX parser
+	/*! 
+	 * When end element is a publication, store the auhtor created in the author map. 
+	 */
 	 public void endElement(String uri,String localname,String qname) throws SAXException {
 		 if(qname.equalsIgnoreCase("article") || qname.equalsIgnoreCase("inproceedings") || qname.equalsIgnoreCase("proceedings") || qname.equalsIgnoreCase("book") || qname.equalsIgnoreCase("incollection") || qname.equalsIgnoreCase("masterthesis") || qname.equalsIgnoreCase("phdthesis")) {
 			 bPubl = false;
 		 }
 	 }
 }
-
-//parse for publications pertaining to given author
+//! User Handler for AuthorPublication
+/*! 
+ *  Parsing for Publications pertaining to the Given author
+ */
 class UserHandlerAuthorPublication extends DefaultHandler {
 	private List<Publication> publications; 
 	public Author author;
@@ -186,6 +211,7 @@ class UserHandlerAuthorPublication extends DefaultHandler {
 	private Publication newPubl;
 	private int result = 0;
 	
+	//! Constructor
 	public UserHandlerAuthorPublication(Author author, List<Publication> publ){ 
 		this.author = author; 
 		this.publications = publ;
@@ -194,6 +220,10 @@ class UserHandlerAuthorPublication extends DefaultHandler {
 	
 	List<Publication> getPublications(){ return this.publications; }
 	
+	//! callback for start element done by SAX Parser
+	/*! 
+	 * Check the type for start and element and mark the corresponding boolean variable. 
+	 */
 	public void startElement(String uri,String localname,String qname,Attributes attributes) throws SAXException{
 		if(qname.equalsIgnoreCase("article") || qname.equalsIgnoreCase("inproceedings") || qname.equalsIgnoreCase("proceedings") || qname.equalsIgnoreCase("book") || qname.equalsIgnoreCase("incollection") || qname.equalsIgnoreCase("masterthesis") || qname.equalsIgnoreCase("phdthesis")) {
 			bPubl = true;
@@ -209,6 +239,12 @@ class UserHandlerAuthorPublication extends DefaultHandler {
 		if(qname.equalsIgnoreCase("url") && bPubl) bUrl = true;	
 	}
 	 
+	//! callback for characters done by SAX Parser
+	/*! 
+	 * ch stores the text within the opening and ending tags in xml file. 
+	 * Match the author of the publication with the query author and create
+	 * the publication instance. 
+	 */
 	 public void characters(char ch[],int start, int length)throws SAXException{
 		 if(bAuthorName){
 			 String name = new String(ch, start, length);
@@ -224,74 +260,62 @@ class UserHandlerAuthorPublication extends DefaultHandler {
 		 }
 		 
 		 if(bTitle){ 
-			 if(this.AuthorFound)
-			 {
-				 this.newPubl.setTitle(new String(ch, start, length)); 
-			 }
+			 if(this.AuthorFound) newPubl.setTitle(new String(ch, start, length)); 
 			 this.bTitle = false;
 		 }
 		 if(bPages){
-			 if(this.AuthorFound)
-				 newPubl.setPages(new String(ch, start, length)); 
+			 if(this.AuthorFound) newPubl.setPages(new String(ch, start, length)); 
 			 this.bPages = false; 
 		 }
 		 if(bYear){
-			 if(this.AuthorFound)
-				 newPubl.setYear(Integer.valueOf(new String(ch, start, length)));
+			 if(this.AuthorFound) newPubl.setYear(Integer.valueOf(new String(ch, start, length)));
 			 this.bYear = false;
 		 }
 		 if(bVolume){
-			 if(this.AuthorFound)
-				 newPubl.setVolume(new String(ch, start, length));
+			 if(this.AuthorFound) newPubl.setVolume(new String(ch, start, length));
 			 this.bVolume = false;
 		 }
 		 if(bJournal){
-			 if(this.AuthorFound)
-				 newPubl.setJournal(new String(ch, start, length));
+			 if(this.AuthorFound) newPubl.setJournal(new String(ch, start, length));
 			 this.bJournal = false; 
 		 }
 		 if(bUrl){
-			 if(this.AuthorFound)
-				 newPubl.setURL(new String(ch, start, length));
+			 if(this.AuthorFound) newPubl.setURL(new String(ch, start, length));
 			 this.bUrl = false;
 		}
 	 }
 	 
+	//! callback for endelement done by SAX parser
+	/*! 
+	 * When end element is a publication, store the publication created in the result list. 
+	 */
 	 public void endElement(String uri,String localname,String qName) throws SAXException {
 		 if(qName.equalsIgnoreCase("article") || qName.equalsIgnoreCase("inproceedings") || qName.equalsIgnoreCase("proceedings") || qName.equalsIgnoreCase("book") || qName.equalsIgnoreCase("incollection") || qName.equalsIgnoreCase("masterthesis") || qName.equalsIgnoreCase("phdthesis")) {
-			 if(this.AuthorFound)
-			 {
-				 if(newPubl != null)
-				 {
-					 this.publications.add(newPubl);
-				 }
+			 if(this.AuthorFound){
+				 if(newPubl != null){
+					 this.publications.add(newPubl);}
 				 this.result += 1;
 				 this.AuthorFound = false;
 			 }
 			 bPubl = false;
 		 }
 	 }
-	 
-	 public int getResult() { return this.result; }
 }
 
-//parse for publications pertaining to title tags
+/*! 
+ * Parse for Publication pertaining to Title Tags  
+ */
 class UserHandlerTitlePublication extends DefaultHandler {
 	Map<Integer, List<Publication> > matchedPubl;
 	Map<String, Author> ourMainMap;
 	List<String> queryTitle;
 	int numberOfMatches;
-	boolean bPubl = false;
-	boolean bAuthorName = false;
-	boolean bTitle = false;
-	boolean bPages = false;
-	boolean bYear = false;
-	boolean bVolume =  false;
-	boolean bJournal = false;
-	boolean bUrl = false;
+	boolean bPubl = false,bAuthorName = false,bTitle = false,bPages = false;
+	boolean bYear = false,bVolume = false,bJournal = false,bUrl = false;
 	Publication newPubl;
 	Author instanceAuthor; 
 	
+	//! Constructor
 	public UserHandlerTitlePublication(List<String> titleQuery, Map<String, Author> givenMap, Map<Integer, List<Publication> > publMap) {
 		this.queryTitle = titleQuery;
 		this.ourMainMap = givenMap;
@@ -299,6 +323,10 @@ class UserHandlerTitlePublication extends DefaultHandler {
 		this.numberOfMatches = 0;
 	}
 	
+	//! callback for start element done by SAX Parser
+	/*! 
+	 * Check the type for start and element and mark the corresponding boolean variable. 
+	 */
 	public void startElement(String uri,String localname,String qname,Attributes attributes) throws SAXException{
 		if(qname.equalsIgnoreCase("article") || qname.equalsIgnoreCase("inproceedings") || qname.equalsIgnoreCase("proceedings") || qname.equalsIgnoreCase("book") || qname.equalsIgnoreCase("incollection") || qname.equalsIgnoreCase("masterthesis") || qname.equalsIgnoreCase("phdthesis")) {
 			bPubl = true;
@@ -311,8 +339,14 @@ class UserHandlerTitlePublication extends DefaultHandler {
 		if((qname.equalsIgnoreCase("journal") | qname.equalsIgnoreCase("booktitle")) && bPubl) bJournal = true;
 		if(qname.equalsIgnoreCase("url") && bPubl) bUrl = true;	
 	}
-	 
-	 public void characters(char ch[],int start, int length)throws SAXException{	 
+	
+	//! callback for characters done by SAX Parser
+	/*! 
+	 * ch stores the text within the opening and ending tags in xml file. 
+	 * Match the title of the publication with the 
+	 * query title and store the number of matches. 
+	 */
+	public void characters(char ch[],int start, int length)throws SAXException{	 
 		 if(bAuthorName){
 			 String gotName = new String(ch, start, length);
 			 this.instanceAuthor = this.ourMainMap.get(gotName);
@@ -324,46 +358,44 @@ class UserHandlerTitlePublication extends DefaultHandler {
 			 for(String i : this.queryTitle)
 			 {
 				 String other1 = i+"."; String other2 = i+":"; String other3 = i+",";
-				 for(String j : splitTitle)
-				 {
+				 for(String j : splitTitle) {
 					 if(i.equalsIgnoreCase(j) | other1.equalsIgnoreCase(j) | other2.equalsIgnoreCase(j) | other3.equalsIgnoreCase(j))
 						 this.numberOfMatches += 1;
 				 }
 			 }
-			 if(this.numberOfMatches > 0)
-			 {
+			 if(this.numberOfMatches > 0) {
 				 this.newPubl = new Publication();
 				 this.newPubl.setTitle(gotTitle);
 			 }
 			 bTitle = false;
 		 }
 		 if(bPages){ 
-			 if(this.numberOfMatches > 0)
-				 newPubl.setPages(new String(ch, start, length));
+			 if(this.numberOfMatches > 0) newPubl.setPages(new String(ch, start, length));
 			 bPages = false;
 		 }
 		 if(bYear){ 
-			 if(this.numberOfMatches > 0)
-				 newPubl.setYear(Integer.valueOf(new String(ch, start, length))); 
+			 if(this.numberOfMatches > 0) newPubl.setYear(Integer.valueOf(new String(ch, start, length))); 
 			 bYear = false; 
 		 }
 		 if(bVolume){
-			 if(this.numberOfMatches > 0)
-			 	newPubl.setVolume(new String(ch, start, length)); 
+			 if(this.numberOfMatches > 0) newPubl.setVolume(new String(ch, start, length)); 
 			 bVolume = false; 
 		 }
 		 if(bJournal){ 
-			 if(this.numberOfMatches > 0)
-				 newPubl.setJournal(new String(ch, start, length)); 
+			 if(this.numberOfMatches > 0) newPubl.setJournal(new String(ch, start, length)); 
 			 bJournal = false;
 		 }
 		 if(bUrl){
-			 if(this.numberOfMatches > 0)
-				 newPubl.setURL(new String(ch, start, length));
+			 if(this.numberOfMatches > 0) newPubl.setURL(new String(ch, start, length));
 			 bUrl = false; 
 		 }
 	 }
 	 
+	//! callback for endelement done by SAX parser
+	/*! 
+	 * When the end element is article, inproceedings etc (publications), 
+	 * then store the created publication in the map with the key as number of matches. 
+	 */
 	 public void endElement(String uri,String localname,String qname) throws SAXException {
 		 if(qname.equalsIgnoreCase("article") || qname.equalsIgnoreCase("inproceedings") || qname.equalsIgnoreCase("proceedings") || qname.equalsIgnoreCase("book") || qname.equalsIgnoreCase("incollection") || qname.equalsIgnoreCase("masterthesis") || qname.equalsIgnoreCase("phdthesis")) {
 			 if(this.numberOfMatches > 0){

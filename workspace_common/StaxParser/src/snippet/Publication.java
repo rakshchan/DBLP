@@ -1,8 +1,10 @@
 package snippet;
 import java.util.*;
 
+/** PUBLICATION CLASS */
+
 public class Publication {
-	private List<Author> authors;
+	private List<Author> authors; 
 	private String Title;
 	private String pages;
 	private String Journal;
@@ -10,6 +12,10 @@ public class Publication {
 	private int year;
 	private String volume;
 	
+	/*! Constructor 
+     * 
+     *  Creates an arrayList of Authors. 
+     */
 	public Publication(){
 		authors = new ArrayList<Author>();
 		this.Title = "";
@@ -18,13 +24,17 @@ public class Publication {
 		this.URL = "";
 		this.volume = "";
 	}
-	
+	/*!  Another constructor
+     *   This takes the Title as the parameter
+     */
 	public Publication(String title){ 
 		this.Title = title; 
 		authors = new ArrayList<Author>();
 	}
 	
-	//getters
+	/*!  
+     *  GETTER METHODS
+     */
 	List<Author> getAuthors(){return authors;}
 	String getTitle(){return Title;}
 	String getJournal(){return Journal;}
@@ -33,7 +43,9 @@ public class Publication {
 	String getVolume(){ return volume;}
 	String getURL(){return URL;}
 	
-	//setters
+	/*!  
+     *   SETTER METHODS
+     */
 	void setTitle(String Title){this.Title = Title;	}
 	void setJournal(String jour){this.Journal = jour;}
 	void setPages(String Pag){this.pages = Pag;}
@@ -42,6 +54,9 @@ public class Publication {
 	void setURL(String URL ){this.URL = URL;}
 	void addAuthor(Author author){ this.authors.add(author); }
 	
+	/*!  
+     *  Converts the Author Details to a String  
+     */
 	public String toString()
 	{
 		String ans = "Authors : ";
