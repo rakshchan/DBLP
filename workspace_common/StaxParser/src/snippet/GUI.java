@@ -10,6 +10,10 @@ import javax.swing.GroupLayout.Alignment;
 
 import java.util.*;
 
+/*!		GUI CLASS 
+ * 	 All the creation and the initialization (Components and the table ) 
+ * 	 is being done here.
+ */
 public class GUI extends JFrame
 {
 	private static final long serialVersionUID = 1L;
@@ -41,7 +45,10 @@ public class GUI extends JFrame
 			}
 		}
 	}
-	
+	/*! 
+	 * 	Creates all the components required for the GUI.
+	 */
+	   
 	protected void makeComponents()
 	{
 	  queryLabel = new JLabel("Query: ");
@@ -75,13 +82,16 @@ public class GUI extends JFrame
       reset = new JButton("reset");
       next = new JButton("next");
 	}
-	
+	/*! 
+	 * 	Creates and initializes the Table for Query Results.
+	 */
+	   
 	protected void makeTable()
 	{
 		String column[]={"S.No","Author","Title","Pages","Year","Volume","Journal/BookTitle","URL"};
 		jt=new JTable(data,column);  
 		jt.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		jt.setRowHeight(21);
+		jt.setRowHeight(22);
 		jt.getColumnModel().getColumn(0).setPreferredWidth(40);
 		jt.getColumnModel().getColumn(1).setPreferredWidth(150);
 		jt.getColumnModel().getColumn(2).setPreferredWidth(170);
@@ -91,7 +101,10 @@ public class GUI extends JFrame
 		jt.getColumnModel().getColumn(6).setPreferredWidth(150);
 		jt.getColumnModel().getColumn(7).setPreferredWidth(180);	
 	}
-	
+	/*! 
+	 * 	creates the horizontal Group for the Group Layout of the GUI
+	 */
+	   
 	protected void makeHorizontalGroup(GroupLayout layout)
 	   {
 		   layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -134,6 +147,9 @@ public class GUI extends JFrame
 		            		)))
 		            );
 	   }
+	/*! 
+	 * 	creates the Vertical Group for the Group Layout of the GUI
+	 */
 	   
 	   protected void makeVerticalGroup(GroupLayout layout)
 	   {
@@ -171,8 +187,10 @@ public class GUI extends JFrame
 		                        ));
 	   }
 }
-
-//group layout 
+/*! 
+ * 	the main GUI class where the GUI is being created using the
+ * group layout and the action listeners are added to it.
+ */
 class DBLP_GUI extends GUI
 {
 	private static final long serialVersionUID = 1L;
@@ -186,12 +204,15 @@ class DBLP_GUI extends GUI
 	    next.addActionListener(nextListener);
 	    reset.addActionListener(new resetListener());
 	}
+	/*!			CONSTRUCTOR 
+	 * 	Calls the Group Layout Functions and integrates listeners to it.
+	 */
 	
    public DBLP_GUI()
    {
 	  control = new Main();
 	  this.currentIndex = 0;
-      setTitle("GUI");
+      setTitle("DBLP QUERY ENGINE");
       setSize(900, 510);
       
       makeComponents();
@@ -210,7 +231,9 @@ class DBLP_GUI extends GUI
       layout.linkSize(SwingConstants.HORIZONTAL, new java.awt.Component[] { queryChoice ,searchBy });
       makeVerticalGroup(layout);
    }
-
+	/*! 
+	 * 	Stores the data to the corresponding rows.
+	 */
    private void fillRow(Publication p, int i){
 	   data[i][0] = String.valueOf(i + this.currentIndex);
 	   data[i][1] = p.getAuthors().get(0).getName();
@@ -221,7 +244,10 @@ class DBLP_GUI extends GUI
 	   data[i][6] = p.getJournal();
 	   data[i][7] = p.getURL();
    }
- 
+	/*! 
+	 * 	Displays the next 20 rows of the data from the List
+	 */
+
    public void displayNextData(List<Publication> listPub){
 	   if(listPub == null)
 	   {
@@ -236,6 +262,9 @@ class DBLP_GUI extends GUI
 		   this.currentIndex += 20;
 	   }
    }	
+	/*! 
+	 * 	Displays the next 20 rows of the data from the Set of authors
+	 */
    
    public void displayNextData(Set<Author> authors){
 	   int count = 0;
@@ -247,18 +276,28 @@ class DBLP_GUI extends GUI
 		   count += 1;
 	   }
    }
+	/*! 
+	 * 	A function for Setting the visibility of the variable number of arguments to false.
+	 */
    
    private void makeInvisible(Component... components){
 	   for(int i=0; i<components.length; i++)
 		   components[i].setVisible(false);
    }
-   
+	/*! 
+	 * 	A function for Setting the visibility of the variable number of arguments to true.
+	 */
+
    private void makeVisible(Component... components)
    {
 	   for(int i=0; i<components.length; i++)
 		   components[i].setVisible(true);
    }
-   
+	/*! 
+	 * 	A function for prediction of the number of publications based on the 
+	 *  the data provided till the specified year, considering only the non-zero values.
+	 */
+
    private Map<Integer, Integer> tillYear(List<Publication> p, int toYear)
    {
 	   Map<Integer, Integer> predMap = new HashMap<Integer, Integer>();
@@ -274,7 +313,11 @@ class DBLP_GUI extends GUI
 	   }
 	   return predMap;
    }
-   
+	/*! 
+	 * 	A function for Custom range text box where we specify the range of years
+	 * for the publications to be printed.
+	 */
+
    private List<Publication> checkRange(List<Publication> p){
 	   List<Publication> linkedP = new ArrayList<Publication>();
 	   if(customRangeFrom.getText().equals("YYYY") && customRangeTo.getText().equals("YYYY")){
@@ -320,7 +363,11 @@ class DBLP_GUI extends GUI
 	   }
 	   return linkedP;
    }
-   
+	/*! 
+	 * 	A function for Since year functionality where we specify the year from
+	 *  which we want the author's publications to be printed/returned.
+	 */
+
    private List<Publication> checkSinceYear(List<Publication> p)
    {
 	   List<Publication> linkedP = new ArrayList<Publication>();
@@ -345,7 +392,9 @@ class DBLP_GUI extends GUI
 	   }
 	   return linkedP;
    }
-   
+	/*! 
+	 * 	Action Listener class for the query selection.
+	 */
    class SelectQuery implements ActionListener 
    {
 	   public void actionPerformed(ActionEvent e)
@@ -388,6 +437,12 @@ class DBLP_GUI extends GUI
 		   }
 	   }
    }
+   /*! 
+    * 	ActionListener class for the SEARCH button
+    *  This implements the action listener for the search button for 
+    *  all the queries separately and returns the required error if some
+    *  required field is not selected
+    */
    
    class searchListener implements ActionListener {
 	   private void queryOne()
@@ -526,7 +581,9 @@ class DBLP_GUI extends GUI
 		  }
 	   }
    }
-   
+   /*! 
+    * 	ActionListener class for the NEXT button
+    */
    class nextData implements ActionListener {
 	   public void actionPerformed(ActionEvent e)
 	   {
@@ -543,7 +600,9 @@ class DBLP_GUI extends GUI
 		   }
 	   }
    }
-   
+	/*!  ActionListener class for RESET button
+    *   Resets all the texts and the selected items and clears the table.
+    */ 
    class resetListener implements ActionListener {
 	   public void actionPerformed(ActionEvent e)
 	   {
